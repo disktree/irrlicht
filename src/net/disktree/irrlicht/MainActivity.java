@@ -1,7 +1,6 @@
 package net.disktree.irrlicht;
 
 import android.app.Activity;
-import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -13,7 +12,6 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.ImageButton;
 
 public class MainActivity extends Activity {
@@ -24,24 +22,21 @@ public class MainActivity extends Activity {
     private boolean isFlashOn;
     private Camera camera;
     private Parameters params;
-    private TextView btn;
+    private ImageButton btnSwitch;
 
     @Override
     public void onCreate( Bundle savedInstanceState ) {
 
         super.onCreate( savedInstanceState );
 
-        Log.d( TAG, "IRRLICHT" );
-
         setContentView( R.layout.main );
-
-        isFlashOn = false;
 
         getCamera();
 
+        isFlashOn = false;
         hasFlash = getApplicationContext().getPackageManager().hasSystemFeature( PackageManager.FEATURE_CAMERA_FLASH );
 
-        Log.d( TAG, "Device has flashlight "+hasFlash );
+        Log.d( TAG, "Device has flashlight: "+hasFlash );
 
         if( !hasFlash ) {
             AlertDialog alert = new AlertDialog.Builder( MainActivity.this ).create();
@@ -56,11 +51,11 @@ public class MainActivity extends Activity {
             return;
         }
 
-        btn = (TextView) findViewById( R.id.lightSwitch );
-        btn.setOnClickListener( new View.OnClickListener() {
+        btnSwitch = (ImageButton) findViewById( R.id.btnSwitch );
+        btnSwitch.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isFlashOn) {
+                if( isFlashOn ) {
                     turnOffFlash();
                 } else {
                     turnOnFlash();
@@ -68,8 +63,6 @@ public class MainActivity extends Activity {
                 Log.d( TAG, "FLASHLIGHT "+isFlashOn );
             }
         });
-
-        //turnOnFlash();
     }
 
     @Override
@@ -121,8 +114,7 @@ public class MainActivity extends Activity {
             camera.setParameters( params );
             camera.startPreview();
             isFlashOn = true;
-            // changing button/switch image
-            //toggleButtonImage();
+            toggleButtonImage();
         }
     }
 
@@ -136,8 +128,15 @@ public class MainActivity extends Activity {
             camera.setParameters( params );
             camera.stopPreview();
             isFlashOn = false;
-            // changing button/switch image
-            //toggleButtonImage();
+            toggleButtonImage();
+        }
+    }
+
+    private void toggleButtonImage() {
+        if( isFlashOn ) {
+            btnSwitch.setImageResource( R.drawable.btn_switch_on );
+        } else {
+            btnSwitch.setImageResource( R.drawable.btn_switch_off );
         }
     }
 
