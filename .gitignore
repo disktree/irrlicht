@@ -1,5 +1,9 @@
 bin/
 data/
 gen/
+*.apk
+*.jks
 local.properties
+NOTES
 proguard-project.txt
+release.sh
