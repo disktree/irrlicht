@@ -30,7 +30,7 @@ public class MainActivity extends Activity {
     private Boolean isFlashOn;
     private Camera camera;
     private Parameters params;
-    private ImageButton btnSwitch;
+    private ImageButton btn;
 
     @Override
     public void onCreate( Bundle savedInstanceState ) {
@@ -47,7 +47,7 @@ public class MainActivity extends Activity {
         if( !hasFlash ) {
             AlertDialog alert = new AlertDialog.Builder( MainActivity.this ).create();
             alert.setTitle( "Error" );
-            alert.setMessage( "Your device doesn't support flash light" );
+            alert.setMessage( "Your device doesn't support flash light control" );
             alert.setButton( "OK", new DialogInterface.OnClickListener() {
                 public void onClick( DialogInterface dialog, int which ) {
                     finish();
@@ -60,8 +60,8 @@ public class MainActivity extends Activity {
         getCamera();
         getWindow().addFlags( WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
 
-        btnSwitch = (ImageButton) findViewById( R.id.btnSwitch );
-        btnSwitch.setOnClickListener( new View.OnClickListener() {
+        btn = (ImageButton) findViewById( R.id.btn );
+        btn.setOnClickListener( new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if( isFlashOn ) {
@@ -146,9 +146,9 @@ public class MainActivity extends Activity {
 
     private void toggleButtonImage() {
         if( isFlashOn ) {
-            btnSwitch.setImageResource( R.drawable.btn_switch_on );
+            btn.setImageResource( R.drawable.btn_on );
         } else {
-            btnSwitch.setImageResource( R.drawable.btn_switch_off );
+            btn.setImageResource( R.drawable.btn_off );
         }
     }
 
