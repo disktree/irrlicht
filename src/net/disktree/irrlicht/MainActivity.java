@@ -1,9 +1,13 @@
 package net.disktree.irrlicht;
 
 import android.app.Activity;
-import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
+import android.app.NotificationManager;
 import android.content.DialogInterface;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
@@ -12,14 +16,18 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageButton;
+import android.widget.Switch;
+import android.app.Notification;
 
 public class MainActivity extends Activity {
 
-    private static final String TAG = "irrlicht";
+    private static final Boolean LOG_ENABLED = true;
+    private static final String LOG_TAG = "irrlicht";
 
-    private boolean hasFlash;
-    private boolean isFlashOn;
+    private Boolean hasFlash;
+    private Boolean isFlashOn;
     private Camera camera;
     private Parameters params;
     private ImageButton btnSwitch;
@@ -31,12 +39,10 @@ public class MainActivity extends Activity {
 
         setContentView( R.layout.main );
 
-        getCamera();
-
         isFlashOn = false;
         hasFlash = getApplicationContext().getPackageManager().hasSystemFeature( PackageManager.FEATURE_CAMERA_FLASH );
 
-        Log.d( TAG, "Device has flashlight: "+hasFlash );
+        //Log.d( TAG, "Device has flashlight: "+hasFlash );
 
         if( !hasFlash ) {
             AlertDialog alert = new AlertDialog.Builder( MainActivity.this ).create();
@@ -51,6 +57,9 @@ public class MainActivity extends Activity {
             return;
         }
 
+        getCamera();
+        getWindow().addFlags( WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
+
         btnSwitch = (ImageButton) findViewById( R.id.btnSwitch );
         btnSwitch.setOnClickListener( new View.OnClickListener() {
             @Override
@@ -60,9 +69,11 @@ public class MainActivity extends Activity {
                 } else {
                     turnOnFlash();
                 }
-                Log.d( TAG, "FLASHLIGHT "+isFlashOn );
+                trace( "FLASHLIGHT "+isFlashOn );
             }
         });
+
+        //showNotification();
     }
 
     @Override
@@ -74,7 +85,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if( hasFlash ) turnOnFlash();
+        //if( hasFlash ) turnOnFlash();
+        turnOnFlash();
     }
 
     @Override
@@ -99,7 +111,7 @@ public class MainActivity extends Activity {
                 camera = Camera.open();
                 params = camera.getParameters();
             } catch( RuntimeException e ) {
-                Log.e( "Camera Error. Failed to Open. Error: ", e.getMessage() );
+                trace( "Camera Error. Failed to Open. Error: "+ e.getMessage() );
             }
         }
     }
@@ -141,6 +153,31 @@ public class MainActivity extends Activity {
     }
 
     /*
+    private void showNotification() {
+
+        Notification.Builder mBuilder = new Notification.Builder( this )
+            .setSmallIcon( R.drawable.ic_stat_image_flare )
+            .setContentTitle( "Irrlicht" );
+            //.setContentText( "Hello World!" );
+
+        Intent resultIntent = new Intent( this, MainActivity.class );
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(MainActivity.class);
+        stackBuilder.addNextIntent(resultIntent);
+
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent( 0, PendingIntent.FLAG_UPDATE_CURRENT );
+        mBuilder.setContentIntent(resultPendingIntent);
+
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // mId allows you to update the notification later on.
+        int mId = 222;
+        mNotificationManager.notify(mId, mBuilder.build());
+    }
+    */
+
+    /*
     private void playSound(){
         if(isFlashOn){
             mp = MediaPlayer.create(MainActivity.this, R.raw.light_switch_off);
@@ -157,4 +194,10 @@ public class MainActivity extends Activity {
         mp.start();
     }
     */
+
+    private static final void trace( String msg ) {
+        if( LOG_ENABLED ) {
+            Log.d( LOG_TAG, msg );
+        }
+    }
 }
