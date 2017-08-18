@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.DialogInterface;
 import android.content.Context;
@@ -19,18 +20,24 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.Switch;
-import android.app.Notification;
 
 public class MainActivity extends Activity {
 
-    private static final Boolean LOG_ENABLED = true;
     private static final String LOG_TAG = "irrlicht";
+    private static final Boolean LOG_ENABLED = true;
+
+    private static final void trace( String msg ) {
+        if( LOG_ENABLED ) {
+            Log.d( LOG_TAG, msg );
+        }
+    }
 
     private Boolean hasFlash;
-    private Boolean isFlashOn;
+    private Boolean isFlashOn = false;
     private Camera camera;
     private Parameters params;
     private ImageButton btn;
+    private MediaPlayer btnSound;
 
     @Override
     public void onCreate( Bundle savedInstanceState ) {
@@ -39,12 +46,26 @@ public class MainActivity extends Activity {
 
         setContentView( R.layout.main );
 
-        isFlashOn = false;
         hasFlash = getApplicationContext().getPackageManager().hasSystemFeature( PackageManager.FEATURE_CAMERA_FLASH );
+        //trace( "Device has flashlight: "+hasFlash );
 
-        //Log.d( TAG, "Device has flashlight: "+hasFlash );
+        if( hasFlash ) {
 
-        if( !hasFlash ) {
+            getCamera();
+            getWindow().addFlags( WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
+
+            btn = (ImageButton) findViewById( R.id.btn );
+            btn.setOnClickListener( new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if( isFlashOn ) turnOffFlash(); else turnOnFlash();
+                }
+            });
+
+            //showNotification();
+
+        } else {
+
             AlertDialog alert = new AlertDialog.Builder( MainActivity.this ).create();
             alert.setTitle( "Error" );
             alert.setMessage( "Your device doesn't support flash light control" );
@@ -54,26 +75,7 @@ public class MainActivity extends Activity {
                 }
             });
             alert.show();
-            return;
         }
-
-        getCamera();
-        getWindow().addFlags( WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
-
-        btn = (ImageButton) findViewById( R.id.btn );
-        btn.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if( isFlashOn ) {
-                    turnOffFlash();
-                } else {
-                    turnOnFlash();
-                }
-                trace( "FLASHLIGHT "+isFlashOn );
-            }
-        });
-
-        //showNotification();
     }
 
     @Override
@@ -92,8 +94,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        // on starting the app get the camera params
-        getCamera();
+        getCamera(); // Get camera params on start
     }
 
     @Override
@@ -127,6 +128,7 @@ public class MainActivity extends Activity {
             camera.startPreview();
             isFlashOn = true;
             toggleButtonImage();
+            playSound( R.raw.on );
         }
     }
 
@@ -141,15 +143,29 @@ public class MainActivity extends Activity {
             camera.stopPreview();
             isFlashOn = false;
             toggleButtonImage();
+            playSound( R.raw.off );
         }
     }
 
     private void toggleButtonImage() {
+        int id;
         if( isFlashOn ) {
-            btn.setImageResource( R.drawable.btn_on );
+            id = R.drawable.btn_on;
         } else {
-            btn.setImageResource( R.drawable.btn_off );
+            id = R.drawable.btn_off;
         }
+        btn.setImageResource( id );
+    }
+
+    private void playSound( int id ) {
+        MediaPlayer mp = MediaPlayer.create( MainActivity.this, id );
+        mp.setOnCompletionListener( new OnCompletionListener() {
+            @Override
+            public void onCompletion( MediaPlayer mp ) {
+                mp.release();
+            }
+        });
+        mp.start();
     }
 
     /*
@@ -176,28 +192,4 @@ public class MainActivity extends Activity {
         mNotificationManager.notify(mId, mBuilder.build());
     }
     */
-
-    /*
-    private void playSound(){
-        if(isFlashOn){
-            mp = MediaPlayer.create(MainActivity.this, R.raw.light_switch_off);
-        }else{
-            mp = MediaPlayer.create(MainActivity.this, R.raw.light_switch_on);
-        }
-        mp.setOnCompletionListener(new OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                // TODO Auto-generated method stub
-                mp.release();
-            }
-        });
-        mp.start();
-    }
-    */
-
-    private static final void trace( String msg ) {
-        if( LOG_ENABLED ) {
-            Log.d( LOG_TAG, msg );
-        }
-    }
 }
